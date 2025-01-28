@@ -57,10 +57,32 @@ public class MemorySpace {
 	 *        the length (in words) of the memory block that has to be allocated
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
-	public int malloc(int length) {		
-		//// Replace the following statement with your code
-		return -1;
-	}
+	public int malloc(int length) {
+    // Iterate through each block in the freeList
+    for (int i = 0; i < freeList.getSize(); i++) {
+        MemoryBlock currentBlock = freeList.getBlock(i); // Get the memory block at index i
+
+        
+        if (currentBlock.baseAddress >= 0 && currentBlock.length >= length) { 
+			int addy = currentBlock.baseAddress;
+            MemoryBlock allocatedBlock = new MemoryBlock(addy, length);
+            allocatedList.addLast(allocatedBlock); 
+
+            
+            if (currentBlock.length == length) {
+                freeList.remove(i); 
+            } else {
+               
+                currentBlock.baseAddress += length; 
+                currentBlock.length -= length;     
+            }
+
+            return addy; 
+        }
+    }
+
+    return -1; 
+}
 
 	/**
 	 * Frees the memory block whose base address equals the given address.
@@ -71,8 +93,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
-	}
+    
+    for (int i = 0; i < allocatedList.getSize(); i++) {
+    MemoryBlock allocatedBlock = allocatedList.getBlock(i); 
+
+        if (allocatedBlock.baseAddress == address) {
+            allocatedList.remove(i);
+            freeList.addLast(allocatedBlock);
+            
+            return; 
+        }
+    }
+    System.out.println("Error: No allocated block found with address " + address);
+}
 	
 	/**
 	 * A textual representation of the free list and the allocated list of this memory space, 
@@ -88,7 +121,29 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		/// TODO: Implement defrag test
-		//// Write your code here
+    for (int i = 0; i < freeList.getSize() - 1; i++) {
+        for (int j = 0; j < freeList.getSize() - i - 1; j++) {
+            MemoryBlock current = freeList.getBlock(j);
+            MemoryBlock next = freeList.getBlock(j + 1);
+            if (current.baseAddress > next.baseAddress) {
+                MemoryBlock temp = current;
+                freeList.remove(j);
+                freeList.add(j, next);
+                freeList.remove(j + 1);
+                freeList.add(j + 1, temp);
+            }
+        }
+    }
+    for (int i = 0; i < freeList.getSize() - 1; i++) {
+        MemoryBlock current = freeList.getBlock(i);
+        MemoryBlock next = freeList.getBlock(i + 1);
+
+        
+        if (current.baseAddress + current.length == next.baseAddress) {
+            current.length += next.length;
+            freeList.remove(i + 1);
+            i--; 
+        }
+    }
 	}
 }
