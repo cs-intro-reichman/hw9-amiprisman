@@ -89,19 +89,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		for (int i = 0; i < allocatedList.getSize(); i++) {
-			MemoryBlock allocatedBlock = allocatedList.getBlock(i);
+    for (int i = 0; i < allocatedList.getSize(); i++) {
+        MemoryBlock allocatedBlock = allocatedList.getBlock(i);
 
-			if (allocatedBlock.baseAddress == address) {
-				allocatedList.remove(i);
-				freeList.addLast(allocatedBlock);
-				defrag();
-				return;
-			}
-		}
+        if (allocatedBlock.baseAddress == address) {
+            allocatedList.remove(i);
+            freeList.addLast(allocatedBlock);
+            defrag();
+            return;
+        }
+    }
 
-		throw new IllegalArgumentException("No allocated block found with address " + address);
-	}
+    throw new IllegalArgumentException("index must be between 0 and size");
+}
 	
 	/**
 	 * A textual representation of the free list and the allocated list of this memory space, 
@@ -117,6 +117,11 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
+    if (freeList.getSize() < 2) {
+        return; // No need to defrag if there are fewer than 2 blocks
+    }
+
+    // Sort the freeList based on baseAddress
     for (int i = 0; i < freeList.getSize() - 1; i++) {
         for (int j = 0; j < freeList.getSize() - i - 1; j++) {
             MemoryBlock current = freeList.getBlock(j);
@@ -129,14 +134,18 @@ public class MemorySpace {
             }
         }
     }
+
+    // Merge consecutive blocks
     for (int i = 0; i < freeList.getSize() - 1; i++) {
         MemoryBlock current = freeList.getBlock(i);
         MemoryBlock next = freeList.getBlock(i + 1);
+
         if (current.baseAddress + current.length == next.baseAddress) {
             current.length += next.length;
             freeList.remove(i + 1);
-            i--;
+            i--; // Step back to check for further merges
         }
     }
 }
 }
+
