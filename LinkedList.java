@@ -54,6 +54,9 @@ public class LinkedList {
 			throw new IllegalArgumentException(
 					"index must be between 0 and size");
 		}
+	 if (first == null) { 
+        throw new IllegalArgumentException("index must be between 0 and size");
+	 }
 		Node step = first;
 		for (int i = 0; i < index ; i++){
 			step = step.next;
@@ -85,24 +88,24 @@ public class LinkedList {
 			throw new IllegalArgumentException(
 					"index must be between 0 and size");
 		}
-		else if (index == 0){
-			Node nF = new Node(block);
-			nF.next = first;
-			first = nF;
+		Node holder = new Node(block); 
+		if (index == 0){
+			holder.next = first;
+			first = holder;
 			if (size == 0){ 
-				last = nF;
+				last = holder;
 			}
 		}
-		else if (index == (size-1)){
-			Node nL = new Node(block);
-			last.next = nL;
-			last = nL;
+		else if (index == (size)){
+			if (last != null){
+				last.next = holder;
+			}
+			last = holder;
 		}
 		else {
-			Node nM = new Node(block);
 			Node before = getNode(index - 1);
-			nM.next = before.next;
-			before.next = nM;
+			holder.next = before.next;
+			before.next = holder;
 		}
 
 		size++;
@@ -120,7 +123,7 @@ public class LinkedList {
 			add(0,block);
 		}
 		else {
-			add(size-1,block);
+			add(size,block);
 		}
 		
 	}
@@ -161,7 +164,7 @@ public class LinkedList {
 	 */
 	public int indexOf(MemoryBlock block) {
 		Node step = first;
-		for (int i = 0; i < size -1 ; i++){
+		for (int i = 0; i < size ; i++){
 			if (block.equals(step.block)){
 				return i;
 			}
@@ -179,14 +182,20 @@ public class LinkedList {
 	public void remove(Node node) {
 		int index = indexOf(node.block);
 		if (index == 0){
-			first = node.next;
+			first = first.next;
+			if (size==1){
+				last = null;
+			}
 		}
 		else if (index == size-1){
+			Node secondL = getNode(size-2);
 			last = getNode(size-2);
+			secondL.next = null;
+			last = secondL;
 		}
 		else {
 			getNode(index-1).next = node.next;
-			/// ----------------------- idk if i need to put it into the free list 
+			
 		}
 		
 		size--;
@@ -200,8 +209,26 @@ public class LinkedList {
 	 *         if index is negative or greater than or equal to size
 	 */
 	public void remove(int index) {
-		remove(getNode(index));
-	}
+    if (index < 0 || index >= size) { 
+        throw new IllegalArgumentException("index must be between 0 and size");
+    }
+
+    if (index == 0) { 
+        first = first.next;
+        if (size == 1) { 
+            last = null;
+        }
+    } else if (index == size - 1) {
+        Node secondLast = getNode(size - 2);
+        secondLast.next = null;
+        last = secondLast;
+    } else {
+        Node prev = getNode(index - 1);
+        prev.next = prev.next.next;
+    }
+
+    size--;
+}
 
 	/**
 	 * Removes from this list the node pointing to the given memory block.
@@ -211,6 +238,10 @@ public class LinkedList {
 	 *         if the given memory block is not in this list
 	 */
 	public void remove(MemoryBlock block) {
+		int index = indexOf(block);
+   			 if (index == -1) {
+        throw new IllegalArgumentException("Element not found in the list");
+    }
 		remove(indexOf(block));
 	}	
 
